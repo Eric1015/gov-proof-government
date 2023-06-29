@@ -32,16 +32,52 @@ const useLitFileProvider = () => {
     return ipfsCid;
   };
 
+  // const decrypt = async (ipfsCid: string) => {
+  //   const authSig = await LitJsSdk.checkAndSignAuthMessage({
+  //     chain: 'ethereum',
+  //   });
+  //   const decryptedString = await LitJsSdk.decryptFromIpfs({
+  //     authSig,
+  //     ipfsCid,
+  //     litNodeClient: window.litNodeClient,
+  //   });
+  //   return decryptedString;
+  // };
+
   const decrypt = async (ipfsCid: string) => {
-    const authSig = await LitJsSdk.checkAndSignAuthMessage({
-      chain: 'ethereum',
-    });
-    const decryptedString = await LitJsSdk.decryptFromIpfs({
-      authSig,
-      ipfsCid,
-      litNodeClient: window.litNodeClient,
-    });
-    return decryptedString;
+    try {
+      const metadata = await (
+        await fetch(`https://gateway.pinata.cloud/ipfs/${ipfsCid}`)
+      ).json();
+      const chain = 'ethereum';
+      const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain });
+      const symmetricKey = await window.litNodeClient.getEncryptionKey({
+        accessControlConditions: metadata.accessControlConditions,
+        evmContractConditions: metadata.evmContractConditions,
+        solRpcConditions: metadata.solRpcConditions,
+        unifiedAccessControlConditions: metadata.unifiedAccessControlConditions,
+        toDecrypt: metadata.encryptedSymmetricKeyString,
+        chain,
+        authSig,
+      });
+
+      console.log(symmetricKey);
+
+      const encryptedFileBlob = new Blob(
+        [Buffer.from(metadata.encryptedFile)],
+        {
+          type: 'application/octet-stream',
+        }
+      );
+      const result = await LitJsSdk.decryptFile({
+        file: encryptedFileBlob,
+        symmetricKey,
+      });
+      console.log(result);
+      return result;
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {
@@ -51,6 +87,7 @@ const useLitFileProvider = () => {
       });
       await client.connect();
       window.litNodeClient = client;
+      console.log('LitNodeClient connected');
     };
 
     setUp();
