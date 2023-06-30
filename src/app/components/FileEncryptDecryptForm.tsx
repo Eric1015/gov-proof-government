@@ -11,7 +11,7 @@ const FileEncryptDecryptForm = () => {
   >(null);
   const [file, setFile] = useState<File | null>(null);
   const [ipfsCid, setIpfsCid] = useState<string | null>(null);
-  const [decryptedString, setDecryptedString] = useState<string | null>(null);
+  const [decryptedFile, setDecryptedFile] = useState<File | null>(null);
 
   const handleFileChange = async (file: File | null) => {
     setFile(file);
@@ -24,21 +24,23 @@ const FileEncryptDecryptForm = () => {
     }
     if (file && authorizedWalletAddress) {
       const ipfsCid = await encrypt(file, authorizedWalletAddress);
-      console.log(ipfsCid);
       setIpfsCid(ipfsCid);
     }
   };
 
   const handleDecryptClick = async () => {
     if (ipfsCid) {
-      const decryptedString = await decrypt(ipfsCid);
-      console.log(decryptedString);
-      console.log(typeof decryptedString);
-      setDecryptedString(
-        typeof decryptedString === 'string'
-          ? decryptedString
-          : new TextDecoder().decode(decryptedString)
-      );
+      const decryptedObject = await decrypt(ipfsCid);
+      if (decryptedObject) {
+        const decryptedFile = new File(
+          [Buffer.from(decryptedObject)],
+          'result.docx',
+          { type: 'application/octet-stream' }
+        );
+        setDecryptedFile(decryptedFile);
+      } else {
+        alert('No decrypted object found');
+      }
     }
   };
 
@@ -76,7 +78,15 @@ const FileEncryptDecryptForm = () => {
           <Button onClick={handleDecryptClick}>Decrypt</Button>
         </Grid>
         <Grid item xs={12} justifyContent="center" alignItems="center">
-          <p>Decrypted String: {decryptedString}</p>
+          <p>
+            Decrypted file status:{' '}
+            {decryptedFile == null ? 'Not yet' : 'Ready!'}
+          </p>
+          {decryptedFile && (
+            <a href={URL.createObjectURL(decryptedFile)} download="result.docx">
+              Download decrypted file
+            </a>
+          )}
         </Grid>
       </Grid>
     </div>
