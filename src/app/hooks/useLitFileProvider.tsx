@@ -43,39 +43,6 @@ const useLitFileProvider = () => {
     });
   };
 
-  // const decrypt = async (ipfsCid: string) => {
-  //   try {
-  //     const metadata = await (
-  //       await fetch(`https://gateway.pinata.cloud/ipfs/${ipfsCid}`)
-  //     ).json();
-  //     const chain = 'ethereum';
-  //     const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain });
-  //     const symmetricKey = await window.litNodeClient.getEncryptionKey({
-  //       accessControlConditions: metadata.accessControlConditions,
-  //       evmContractConditions: metadata.evmContractConditions,
-  //       solRpcConditions: metadata.solRpcConditions,
-  //       unifiedAccessControlConditions: metadata.unifiedAccessControlConditions,
-  //       toDecrypt: metadata.encryptedSymmetricKeyString,
-  //       chain,
-  //       authSig,
-  //     });
-
-  //     const encryptedFileBlob = new Blob(
-  //       [Buffer.from(metadata.encryptedFile)],
-  //       {
-  //         type: 'application/octet-stream',
-  //       }
-  //     );
-  //     const result = await LitJsSdk.decryptFile({
-  //       file: encryptedFileBlob,
-  //       symmetricKey,
-  //     });
-  //     return result;
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
   useEffect(() => {
     const setUp = async () => {
       const client = new LitJsSdk.LitNodeClient({
